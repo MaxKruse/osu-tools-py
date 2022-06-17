@@ -1,7 +1,7 @@
 
 class Score:
 	__slots__ = ["scoreID", "playerName", "score", "maxCombo", "c50", "c100", "c300", "cMiss", "cKatu", "cGeki",
-	             "fullCombo", "mods", "playerUserID","rank","date", "hasReplay", "fileMd5", "passed", "playDateTime",
+	             "fullCombo", "mods", "playerUserID","rank","date", "hasReplay", "fileMd5", "beatmap_id", "passed", "playDateTime",
 	             "gameMode", "completed", "accuracy", "pp", "oldPersonalBest", "rankedScoreIncrease",
 				 "_playTime", "_fullPlayTime", "quit", "failed"]
 	def __init__(self):
@@ -27,6 +27,7 @@ class Score:
 		self.playerUserID = 0
 		self.date = 0
 		self.hasReplay = 0
+		self.beatmap_id = 0
 
 		self.fileMd5 = None
 		self.passed = False

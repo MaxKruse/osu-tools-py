@@ -13,14 +13,15 @@ class XexxarPerformanceCalculator(BaseCalculator.BaseCalculator):
         # Here you have access to self.score and self.beatmap, which are the 2 main things
         # e.g. for every hitobject in the beatmap, print it out
 
-        dt_enabled = self.score.mods & 64 > 0
-        print(dt_enabled)
+        # Make sure you cast the mods. This is python...
+        dt_enabled = int(self.score.mods) & 64 > 0
+        # print(f"DT Enabled? {'yes' if dt_enabled else 'no'}")
 
         for hitobject in self.beatmap.hit_objects(double_time=dt_enabled):
             # Depending on if you pass double_time, HR, ez etc. the hitobject here will already have its time + position updated
             # Its up to you to do the rest of the calculation, e.g. cirlesize, hitwindow etc.
 
-            print(f"Hitobject is {hitobject.__class__.__name__} at {hitobject.position.x}:{hitobject.position.y} @ {hitobject.time}ms")
+            # print(f"Hitobject is {hitobject.__class__.__name__} at {hitobject.position.x}:{hitobject.position.y} @ {hitobject.time}ms")
             pass
             
 
