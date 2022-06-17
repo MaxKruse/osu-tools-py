@@ -13,30 +13,38 @@ def cli(ctx, calculator):
 
 @cli.command()
 @click.pass_context
-def bancho(ctx):
+@click.argument("profile_id", type=int, nargs=1)
+def bancho(ctx, profile_id):
     click.echo("Bancho Profile Recalculator")
     click.echo("Currently not implemented")
+
+    click.echo(f"Passed PROFILE_ID = {profile_id}")
     pass
 
 @cli.command()
 @click.pass_context
-def ripple(ctx):
+@click.argument("profile_id", type=int, nargs=1)
+def ripple(ctx, profile_id):
     click.echo("Ripple Profile Recalculator")
     click.echo("Currently not implemented")
+
+    click.echo(f"Passed PROFILE_ID = {profile_id}")
     pass
 
 @cli.command()
 @click.pass_context
-@click.option("--id", required=True, help="BeatmapID to use")
-def web(ctx, id):
+@click.argument("beatmap_id", nargs=1)
+def web(ctx, beatmap_id):
     click.echo("Web (beatmap_id) Recalculator")
     click.echo("Currently not implemented")
+
+    click.echo(f"Passed ID = {beatmap_id}")
     pass
 
 
 @cli.command()
 @click.pass_context
-@click.option("--beatmap", required=True, help="Beatmap to use, has to be the path to the beatmap file")
+@click.argument("beatmap")
 def file(ctx, beatmap):
     click.echo("Osu! File Recalculator")
 
