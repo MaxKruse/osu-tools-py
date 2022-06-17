@@ -27,6 +27,15 @@ def ripple(ctx):
 
 @cli.command()
 @click.pass_context
+@click.option("--id", required=True, help="BeatmapID to use")
+def web(ctx, id):
+    click.echo("Web (beatmap_id) Recalculator")
+    click.echo("Currently not implemented")
+    pass
+
+
+@cli.command()
+@click.pass_context
 @click.option("--beatmap", required=True, help="Beatmap to use, has to be the path to the beatmap file")
 def file(ctx, beatmap):
     click.echo("Osu! File Recalculator")
