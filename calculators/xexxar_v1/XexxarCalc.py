@@ -18,6 +18,7 @@ class XexxarPerformanceCalculator(BaseCalculator.BaseCalculator):
         # print(f"DT Enabled? {'yes' if dt_enabled else 'no'}")
 
         for hitobject in self.beatmap.hit_objects(double_time=dt_enabled):
+            assert isinstance(hitobject, slider.beatmap.HitObject) # After this, intellisense will work
             # Depending on if you pass double_time, HR, ez etc. the hitobject here will already have its time + position updated
             # Its up to you to do the rest of the calculation, e.g. cirlesize, hitwindow etc.
 
