@@ -2,7 +2,7 @@
 
 Small python osu-tools version, for rapidly developing pp systems.
 
-Using (slider)[https://pypi.org/project/slider/] to parse osu files.
+Using [slider](https://pypi.org/project/slider/) to parse osu files.
 
 ## Installation
 
@@ -10,9 +10,7 @@ Using (slider)[https://pypi.org/project/slider/] to parse osu files.
 
 ## Usage
 
-    python .\main.py file --beatmap .\osu_files\2520047.osu
-
-Currently does not offer the ability to download maps. Please do so yourself.
+    python .\main.py profile osu 1955
 
 ## Development
 
