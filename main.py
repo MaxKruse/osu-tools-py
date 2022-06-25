@@ -38,9 +38,9 @@ def ripple(ctx, gamemode, profile_id):
 
     click.echo(f"Passed PROFILE_ID = {profile_id}")
 
-    # only allow gamemode == "osu" for now
-    if gamemode != "osu":
-        click.echo("Only osu gamemode is supported")
+    # only allow gamemode == "std" for now
+    if gamemode != "std":
+        click.echo("Only std gamemode is supported")
         return
 
     # get the current player's full profile from /v1/users/full
@@ -99,20 +99,24 @@ def ripple(ctx, gamemode, profile_id):
         beatmap_ = slider.Beatmap.from_path(f"./osu_files/{score.beatmap_id}.osu")
         calculator = calculators.PP_CALCULATORS[ctx.obj["calculator"]](beatmap_, score)
         score.pp = calculator.pp
+        print(f"Calculated pp: {score.pp}")
         scoresRecalculated.append(score)
+
+    # sort the scoresRecalculated so that the first entry is the highest score.pp
+    scoresRecalculated.sort(key=lambda x: x.pp, reverse=True)
         
     # Aggregate the pp of the recalculated scores, where
     # total pp = pp[1] * 0.95^0 + pp[2] * 0.95^1 + pp[3] * 0.95^2 + ... + pp[m] * 0.95^(m-1)
     copyProfile = deepcopy(originalUser)
-    copyProfile["std"]["pp"] = 0
+    copyProfile[gamemode]["pp"] = 0
     i = 0
     for score in scoresRecalculated:
-        copyProfile["std"]["pp"] += score.pp * (0.95 ** i)
+        copyProfile[gamemode]["pp"] += score.pp * (0.95 ** i)
         i += 1
 
     # print both the old and new profiles
-    click.echo(f"Before: {json.dumps(originalUser['std'], indent=4)}")
-    click.echo(f"After: {json.dumps(copyProfile['std'], indent=4)}")
+    click.echo(f"Before: {json.dumps(originalUser[gamemode], indent=4)}")
+    click.echo(f"After: {json.dumps(copyProfile[gamemode], indent=4)}")
     pass
 
 @cli.command()
