@@ -3,6 +3,7 @@ import slider
 from calculators import BaseCalculator
 from helpers.gamemodes import GameMode
 from helpers.Score import Score
+from calculators.xexxar_v1.calculate import calculate
 
 class XexxarPerformanceCalculator(BaseCalculator.BaseCalculator):
     def __init__(self, beatmap_: slider.Beatmap, score_: Score, acc=None, mods_=None, tillerino=False, gameMode=GameMode.Standard):
@@ -24,7 +25,44 @@ class XexxarPerformanceCalculator(BaseCalculator.BaseCalculator):
 
             # print(f"Hitobject is {hitobject.__class__.__name__} at {hitobject.position.x}:{hitobject.position.y} @ {hitobject.time}ms")
             pass
-            
 
-        self.pp = 420.69
+        # someone, or me, needs to do some magic to put the data into the format I'm going for here.
+        # I don't really want to do it cause I'm lazy and the engine itself is gonna be complex
+        # so if I can pawn off that work that'd be hype. I'd love that for me.
+        # here is the data format we need.
+
+        # calculate({'AR': ar,
+        #           'CS': cs,
+        #           'HP': lol,
+        #           'OD': od,
+        #           'CircleCount': circleCount,
+        #           'SliderCount': sliderCount,
+        #           'SpinnerCount': lol2,
+        #           'MaxCombo': maxCombo,}, #anything else i'm not thinking of.
+        #          [{'dx': x,
+        #            'dy': y,
+        #            'dt': t,
+        #            'S': None}
+        #           {'dx': x,
+        #            'dy': y,
+        #            'dt': t,
+        #            'S': [{'dx': x, #movement required to reach center of tick or repeat
+        #                   'dy': y,
+        #                   'dt': t}
+        #                   .., #for how every many ticks or repeats there
+        #                  {'dx': x, #distance to 'lazy slider end' center
+        #                   'dy': y,
+        #                   'dt': t}]}
+        #            ..,
+        #           {'dx': x,
+        #            'dy': y,
+        #            'dt': t,},
+        #          {'300': threehundreds,
+        #           '100': onehundreds,
+        #           '50': fiftys,
+        #           'Misses': misses,
+        #           'ScoreCombo': combo}) #anything else I'm not thinking of.
+
+
+        self.pp = calculate({}, [], {},)
         return self.pp
