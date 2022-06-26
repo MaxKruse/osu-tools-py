@@ -57,13 +57,16 @@ class XexxarPerformanceCalculator(BaseCalculator.BaseCalculator):
                     "type": "circle",
                     "x": hitobject.position.x,
                     "y": hitobject.position.y,
-                    "t": timedelta_to_ms(hitobject.time)
+                    "t": timedelta_to_ms(hitobject.time),
+                    "end_t": timedelta_to_ms(hitobject.time),
                 })
 
             elif isinstance(hitobject, slider.beatmap.Slider):
                 metadata['SliderCount'] += 1
 
-                sliderPoints = []
+                sliderPoints = [{"x": hitobject.position.x, #Give me the start position in this format. easier to iterate with.
+                                 "y": hitobject.position.y,
+                                 "t": timedelta_to_ms(hitobject.time)}]
 
                 assert isinstance(hitobject, slider.beatmap.Slider)
 
@@ -72,7 +75,7 @@ class XexxarPerformanceCalculator(BaseCalculator.BaseCalculator):
                         "x": point.x,
                         "y": point.y,
                         "t": timedelta_to_ms(point.offset),
-                        "type": "tick"
+                        # "type": "tick"
                     })
 
                 mapdata.append({
@@ -80,6 +83,7 @@ class XexxarPerformanceCalculator(BaseCalculator.BaseCalculator):
                     "x": hitobject.position.x,
                     "y": hitobject.position.y,
                     "t": timedelta_to_ms(hitobject.time),
+                    "end_t": timedelta_to_ms(hitobject.end_time),
                     "S": sliderPoints
                 })
 
@@ -92,17 +96,10 @@ class XexxarPerformanceCalculator(BaseCalculator.BaseCalculator):
                     "x": hitobject.position.x,
                     "y": hitobject.position.y,
                     "t": timedelta_to_ms(hitobject.time),
-                    "end_time": timedelta_to_ms(hitobject.end_time)
+                    "end_t": timedelta_to_ms(hitobject.end_time)
                 })
-            
+
             pass
-
-
-
-        # someone, or me, needs to do some magic to put the data into the format I'm going for here.
-        # I don't really want to do it cause I'm lazy and the engine itself is gonna be complex
-        # so if I can pawn off that work that'd be hype. I'd love that for me.
-        # here is the data format we need.
 
         self.pp = calculate(metadata=metadata, map_data=mapdata, score_data=scoredata)
         return self.pp
