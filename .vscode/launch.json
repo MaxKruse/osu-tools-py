@@ -12,7 +12,7 @@
             "console": "integratedTerminal",
             "args": [
                 "--calculator",
-                "bucket_v1",
+                "xexxar_v1",
                 "ripple",
                 "std",
                 "1955"
