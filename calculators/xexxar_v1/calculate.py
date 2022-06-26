@@ -42,21 +42,12 @@ def vectorize_map_data(map_data: list):
 
             o['mv'] = [map_data[index + 1]['x'] - object['x'], map_data[index + 1]['y'] - object['y']] # the vector of movement
             o['dt'] = map_data[index + 1]['t'] - object['t'] # the time from object to next object
+            o['st'] = 0
             o['t'] = object['t'] # the raw start time of the object
 
             out.append(o)
 
     return out
-
-
-def convert_ar_to_ms(AR):
-    value = 0
-    if AR > 5:
-        value = 1200 - 750 * (AR - 5) / 5
-    else:
-        value = 1200 + 600 * (5 - AR) / 5
-
-    return value
 
 
 def create_difficulty_metadata(metadata: dict):
@@ -77,10 +68,10 @@ def create_difficulty_metadata(metadata: dict):
 def calculate_note_difficulties(metadata: dict, objects: list):
     out = []
 
-    tap_multiplier = 0#10
-    acc_multiplier = 100
+    tap_multiplier = 15
+    acc_multiplier = 60
     sli_multiplier = 1
-    mov_multiplier = 1
+    mov_multiplier = 60
 
     for index, object, in enumerate(objects):
         # call off to every sub model and calculate the difficulty for this given object and index.
