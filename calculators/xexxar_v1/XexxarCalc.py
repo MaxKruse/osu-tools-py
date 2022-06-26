@@ -84,13 +84,15 @@ class XexxarPerformanceCalculator(BaseCalculator.BaseCalculator):
                 })
 
             elif isinstance(hitobject, slider.beatmap.Spinner):
+                assert isinstance(hitobject, slider.beatmap.Spinner)
                 metadata['SpinnerCount'] += 1
 
                 mapdata.append({
                     "type": "spinner",
                     "x": hitobject.position.x,
                     "y": hitobject.position.y,
-                    "t": hitobject.time
+                    "t": timedelta_to_ms(hitobject.time),
+                    "end_time": timedelta_to_ms(hitobject.end_time)
                 })
             
             pass
