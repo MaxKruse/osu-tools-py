@@ -68,8 +68,8 @@ def create_difficulty_metadata(metadata: dict):
 def calculate_note_difficulties(metadata: dict, objects: list):
     out = []
 
-    tap_multiplier = 15
-    acc_multiplier = 60
+    tap_multiplier = 6
+    acc_multiplier = 10
     sli_multiplier = 1
     mov_multiplier = 60
 
@@ -85,6 +85,16 @@ def calculate_note_difficulties(metadata: dict, objects: list):
         out.append(o)
 
     return out
+
+
+def lp_sum(vector: list, p):
+    sum = 0
+
+    for x in vector:
+        sum += x ** p
+    sum = sum ** (1 / p)
+
+    return sum
 
 
 def calculate(metadata: dict, map_data: list, score_data: dict):
@@ -134,7 +144,7 @@ def calculate(metadata: dict, map_data: list, score_data: dict):
     star_rating = 0
 
     for note in note_difficulties:
-        star_rating += (note['ad'] + note['md'] + note['sd'] + note['td']) ** p
+        star_rating += lp_sum([note['ad'], note['md'], note['sd'], note['td']], 1.1) ** p
 
     star_rating = star_rating ** (1/p)
 
@@ -142,6 +152,7 @@ def calculate(metadata: dict, map_data: list, score_data: dict):
 
     pp = pp_multiplier * star_rating ** 3 # 3 here cubes this SR into a pp value. pp_multiplier is a scalar to adjust things.
 
+    print("Star Rating: ", star_rating)
     # combo game.
     # pp *= 0.75 + 0.25 * (score_data['ScoreCombo'] / metadata['MaxCombo'])
 

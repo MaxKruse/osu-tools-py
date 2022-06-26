@@ -8,10 +8,11 @@ def calculate_accuracy_difficulty(object: dict, index, metadata: dict, objects: 
     d = 0
 
     ## essentially, objects are harder to acc the slower they are.
-    if len(objects) > index + 1 and objects[index + 1]['type'] == 'circle':
-        d = dt_to_d(object['dt'] - object['st']) / metadata['300_window']
-    else:
-        d = dt_to_d(object['dt']) / metadata['50_window']
+    if object['type'] != 'spinner':
+        if len(objects) > index + 1 and objects[index + 1]['type'] == 'circle':
+            d = dt_to_d(object['dt'] - object['st']) / metadata['300_window'] ** 0.5
+        else:
+            d = dt_to_d(object['dt'] - object['st']) / metadata['50_window'] ** 0.5
 
     # Need to add complexity bonus for trick rhythms
 
