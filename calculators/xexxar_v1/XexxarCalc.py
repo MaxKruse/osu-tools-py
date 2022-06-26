@@ -71,8 +71,9 @@ class XexxarPerformanceCalculator(BaseCalculator.BaseCalculator):
                     sliderPoints.append({
                         "x": point.x,
                         "y": point.y,
-                        "t": timedelta_to_ms(point.offset)
-                    })           
+                        "t": timedelta_to_ms(point.offset),
+                        "type": "tick"
+                    })
 
                 mapdata.append({
                     "type": "slider",
