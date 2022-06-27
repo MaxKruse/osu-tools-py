@@ -1,5 +1,6 @@
 from copy import deepcopy
 import json
+from re import M
 import click
 import requests
 import slider
@@ -10,22 +11,31 @@ from helpers.download_map import download_map
 
 RIPPLE_BASE_URL = "https://ripple.moe/api"
 
+import logging
+
+LOG_LEVELS = {
+    "debug": logging.DEBUG,
+    "info": logging.INFO,
+}
+
 @click.group()
 @click.pass_context
 @click.option("--calculator", default="xexxar_v1", help="Calculator to use, default is xexxar_v1")
-def cli(ctx, calculator):
+@click.option("--log", default="info", help="Log level, default is debug. Allowed is debug, info")
+def cli(ctx, calculator, log):
     ctx.ensure_object(dict)
     ctx.obj['calculator'] = calculator
-    click.echo(f"Using calculator: {calculator}")
+    logging.basicConfig(level=LOG_LEVELS[log], format="[%(levelname)s] %(message)s")
+    logging.debug(f"Using calculator: {calculator}")
 
 @cli.command()
 @click.pass_context
 @click.argument("profile_id", type=int, nargs=1)
 def bancho(ctx, profile_id):
-    click.echo("Bancho Profile Recalculator")
-    click.echo("Currently not implemented")
+    logging.info("Bancho Profile Recalculator")
+    logging.debug("Currently not implemented")
 
-    click.echo(f"Passed PROFILE_ID = {profile_id}")
+    logging.debug(f"Passed PROFILE_ID = {profile_id}")
     pass
 
 @cli.command()
@@ -33,13 +43,13 @@ def bancho(ctx, profile_id):
 @click.argument("gamemode", type=str, nargs=1)
 @click.argument("profile_id", type=int, nargs=1)
 def ripple(ctx, gamemode, profile_id):
-    click.echo("Ripple Profile Recalculator")
+    logging.info("Ripple Profile Recalculator")
 
-    click.echo(f"Passed PROFILE_ID = {profile_id}")
+    logging.debug(f"Passed PROFILE_ID = {profile_id}")
 
     # only allow gamemode == "std" for now
     if gamemode != "std":
-        click.echo("Only std gamemode is supported")
+        logging.error("Only std gamemode is supported")
         return
 
     # get the current player's full profile from /v1/users/full
@@ -48,8 +58,8 @@ def ripple(ctx, gamemode, profile_id):
     }
     resp = requests.get(RIPPLE_BASE_URL + "/v1/users/full", params=params)
     if not resp.ok:
-        click.echo("Error: " + str(resp.status_code))
-        click.echo("Make sure the user isnt restricted.")
+        logging.error("Error: " + str(resp.status_code))
+        logging.error("Make sure the user isnt restricted.")
         return
     originalUser = resp.json()
 
@@ -63,69 +73,82 @@ def ripple(ctx, gamemode, profile_id):
     }
     resp = requests.get(RIPPLE_BASE_URL + "/get_user_best", params=params)
     if not resp.ok:
-        click.echo("Error: " + str(resp.status_code))
-        click.echo("Make sure the user isnt restricted.")
+        logging.error("Error: " + str(resp.status_code))
+        logging.error("Make sure the user isnt restricted.")
         return
     respJson = resp.json()
-    scoresOriginal = []
+    scoresOriginal = {}
     for score in respJson:
         temp = Score()
-        temp.score = score["score"]
-        temp.beatmap_id = score["beatmap_id"]
-        temp.playerUserID = profile_id
+        temp.score = int(score["score"])
+        temp.beatmap_id = int(score["beatmap_id"])
+        temp.playerUserID = int(profile_id)
         temp.playerName = originalUser["username"]
         temp.completed = True
-        temp.c300 = score["count300"]
-        temp.c100 = score["count100"]
-        temp.c50 = score["count50"]
-        temp.maxCombo = score["maxcombo"]
-        temp.cMiss = score["countmiss"]
-        temp.mods = score["enabled_mods"]
+        temp.c300 = int(score["count300"])
+        temp.c100 = int(score["count100"])
+        temp.c50 = int(score["count50"])
+        temp.maxCombo = int(score["maxcombo"])
+        temp.cMiss = int(score["countmiss"])
+        temp.mods = int(score["enabled_mods"])
         temp.pp = score["pp"]
 
-        scoresOriginal.append(temp)
+        scoresOriginal[score["beatmap_id"]] = temp
 
-    scoresRecalculated = []
-    for score in scoresOriginal:
+    scoresRecalculated = {}
+    for map_id in scoresOriginal:
+        score = scoresOriginal[map_id]
         # make sure the beatmap_id is reasonable (e.g. above 0)
         if int(score.beatmap_id) < 1:
-            click.echo(f"Error: Beatmap ID is below 1 ({score.beatmap_id}), skipping")
+            logging.debug(f"Error: Beatmap ID is below 1 ({score.beatmap_id}), skipping")
             continue
 
         # Download the beatmap for caching purposes
         download_map(score.beatmap_id)
-        print("Calculating score for beatmap " + str(score.beatmap_id))
+        logging.debug("Calculating score for beatmap " + str(score.beatmap_id))
         beatmap_ = slider.Beatmap.from_path(f"./osu_files/{score.beatmap_id}.osu")
         calculator = calculators.PP_CALCULATORS[ctx.obj["calculator"]](beatmap_, score)
-        print(f"Before: {score.pp}pp | After: {calculator.pp}pp")
+        # logging.debug(f"Before: {score.pp}pp | After: {calculator.pp}pp")
         score.pp = calculator.pp
-        scoresRecalculated.append(score)
+        scoresRecalculated[map_id] = score
 
-    # sort the scoresRecalculated so that the first entry is the highest score.pp
-    scoresRecalculated.sort(key=lambda x: x.pp, reverse=True)
+    scoresRecalculatedArr = sorted(scoresRecalculated.values(), key=lambda x: x.pp, reverse=True)
         
     # Aggregate the pp of the recalculated scores, where
     # total pp = pp[1] * 0.95^0 + pp[2] * 0.95^1 + pp[3] * 0.95^2 + ... + pp[m] * 0.95^(m-1)
     copyProfile = deepcopy(originalUser)
     copyProfile[gamemode]["pp"] = 0
     i = 0
-    for score in scoresRecalculated:
+    for score in scoresRecalculatedArr:
         copyProfile[gamemode]["pp"] += score.pp * (0.95 ** i)
         i += 1
 
+    i = 1
+    # for each score, print the previous and new pp
+    logging.info(f"#|\tMAP_ID\t|\tCOMBO\t|\tACC\t|\tPP_ORIGINAL\t|\tPP_RECALCULATED")
+    for map_id in scoresRecalculated:
+        s1: Score = scoresOriginal[map_id]
+        s2: Score = scoresRecalculated[map_id]
+
+        # Calc the acc
+        s1.calculateAccuracy()
+
+        logging.info(f"{i}|\t{map_id}\t|\t{s1.maxCombo}x\t|\t{(s1.accuracy*100.0):.2f}%\t|\t{s1.pp:.3f}pp\t|\t{s2.pp:.3f}pp")
+        i += 1
+
     # print both the old and new profiles
-    click.echo(f"Profile Before: {originalUser[gamemode]['pp']}pp")
-    click.echo(f"Profile After: {copyProfile[gamemode]['pp']}pp")
+    logging.info(f"Profile Before: {originalUser[gamemode]['pp']}pp")
+    logging.info(f"Profile After: {copyProfile[gamemode]['pp']}pp")
     pass
 
 @cli.command()
 @click.pass_context
 @click.argument("beatmap_id", nargs=1)
 def web(ctx, beatmap_id):
-    click.echo("Web (beatmap_id) Recalculator")
-    click.echo("Currently not implemented")
+    logging.info("Web (beatmap_id) Recalculator")
+    logging.info("Currently not implemented")
 
-    click.echo(f"Passed ID = {beatmap_id}")
+    logging.debug(f"Passed ID = {beatmap_id}")
     pass
 
 
@@ -133,7 +156,7 @@ def web(ctx, beatmap_id):
 @click.pass_context
 @click.argument("beatmap")
 def file(ctx, beatmap):
-    click.echo("Osu! File Recalculator")
+    logging.info("Osu! File Recalculator")
 
     # generate a beatmap object from the file
     beatmap_ = slider.Beatmap.from_path(beatmap)
@@ -145,7 +168,7 @@ def file(ctx, beatmap):
     # etc etc
 
     calculator = calculators.PP_CALCULATORS[ctx.obj["calculator"]](beatmap_=beatmap_, score_=score_)
-    click.echo(f"PP Should already be set, its: {calculator.pp}")
+    logging.debug(f"PP Should already be set, its: {calculator.pp}")
 
 if __name__ == "__main__":
     try:

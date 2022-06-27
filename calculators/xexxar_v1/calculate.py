@@ -1,4 +1,5 @@
 # Imports
+import logging
 import math
 from calculators.xexxar_v1.note_calculators.accuracy import calculate_accuracy_difficulty
 from calculators.xexxar_v1.note_calculators.movement import calculate_movement_difficulty
@@ -152,7 +153,7 @@ def calculate(metadata: dict, map_data: list, score_data: dict):
 
     pp = pp_multiplier * star_rating ** 3 # 3 here cubes this SR into a pp value. pp_multiplier is a scalar to adjust things.
 
-    print("Star Rating: ", star_rating)
+    logging.debug("Star Rating: ", star_rating)
     # combo game.
     # pp *= 0.75 + 0.25 * (score_data['ScoreCombo'] / metadata['MaxCombo'])
 
