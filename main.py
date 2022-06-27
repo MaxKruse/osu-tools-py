@@ -34,7 +34,6 @@ def bancho(ctx, profile_id):
 @click.argument("profile_id", type=int, nargs=1)
 def ripple(ctx, gamemode, profile_id):
     click.echo("Ripple Profile Recalculator")
-    click.echo("Currently not implemented")
 
     click.echo(f"Passed PROFILE_ID = {profile_id}")
 
@@ -98,8 +97,8 @@ def ripple(ctx, gamemode, profile_id):
         print("Calculating score for beatmap " + str(score.beatmap_id))
         beatmap_ = slider.Beatmap.from_path(f"./osu_files/{score.beatmap_id}.osu")
         calculator = calculators.PP_CALCULATORS[ctx.obj["calculator"]](beatmap_, score)
+        print(f"Before: {score.pp}pp | After: {calculator.pp}pp")
         score.pp = calculator.pp
-        print(f"Calculated pp: {score.pp}")
         scoresRecalculated.append(score)
 
     # sort the scoresRecalculated so that the first entry is the highest score.pp
@@ -115,8 +114,8 @@ def ripple(ctx, gamemode, profile_id):
         i += 1
 
     # print both the old and new profiles
-    click.echo(f"Before: {json.dumps(originalUser[gamemode], indent=4)}")
-    click.echo(f"After: {json.dumps(copyProfile[gamemode], indent=4)}")
+    click.echo(f"Profile Before: {originalUser[gamemode]['pp']}pp")
+    click.echo(f"Profile After: {copyProfile[gamemode]['pp']}pp")
     pass
 
 @cli.command()
