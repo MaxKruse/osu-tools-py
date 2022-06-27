@@ -93,7 +93,9 @@ def ripple(ctx, gamemode, profile_id):
         temp.mods = int(score["enabled_mods"])
         temp.pp = score["pp"]
 
-        scoresOriginal[score["beatmap_id"]] = temp
+        scoresOriginal[temp.beatmap_id] = temp
+
+    maps = {}
 
     scoresRecalculated = {}
     for map_id in scoresOriginal:
@@ -107,10 +109,12 @@ def ripple(ctx, gamemode, profile_id):
         download_map(score.beatmap_id)
         logging.debug("Calculating score for beatmap " + str(score.beatmap_id))
         beatmap_ = slider.Beatmap.from_path(f"./osu_files/{score.beatmap_id}.osu")
+        beatmap_.display_name
         calculator = calculators.PP_CALCULATORS[ctx.obj["calculator"]](beatmap_, score)
         logging.debug(f"Before: {score.pp}pp | After: {calculator.pp}pp")
         score.pp = calculator.pp
         scoresRecalculated[map_id] = score
+        maps[score.beatmap_id] = beatmap_
 
     # sort the recalculated scores by their pp, highest first
     scoresRecalculatedArr = sorted(scoresRecalculated.values(), key=lambda x: x.pp, reverse=True)
@@ -128,12 +132,13 @@ def ripple(ctx, gamemode, profile_id):
     # for each score, print the previous and new pp
     logging.info(f"#|\tMAP_ID\t|\tCOMBO\t|\tACC\t|\tPP_ORIGINAL\t|\tPP_RECALCULATED")
     for s2 in scoresRecalculatedArr:
-        s1: Score = scoresOriginal[str(s2.beatmap_id)]
+        s1: Score = scoresOriginal[s2.beatmap_id]
 
         # Calc the acc
         s1.calculateAccuracy()
+        m: slider.Beatmap = maps[s1.beatmap_id]
 
-        logging.info(f"{i}|\t{str(s2.beatmap_id)}\t|\t{s1.maxCombo}x\t|\t{(float(s1.accuracy)*100.0):.2f}%\t|\t{float(s1.pp):.3f}pp\t|\t{float(s2.pp):.3f}pp")
+        logging.info(f"{str(i).ljust(3)} | {m.beatmap_id} {m.display_name.ljust(80)}\t|\t{s1.maxCombo}/{m.max_combo}x\t|\t{(float(s1.accuracy)*100.0):.2f}%\t|\t{float(s1.pp):.3f}pp\t|\t{float(s2.pp):.3f}pp")
         i += 1
 
     # print both the old and new profiles
