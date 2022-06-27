@@ -36,11 +36,11 @@ class XexxarPerformanceCalculator(BaseCalculator.BaseCalculator):
         }
 
         scoredata = {
-            '300': self.score.c300,
-            '100': self.score.c100,
-            '50': self.score.c50,
-            'Misses': self.score.cMiss,
-            'ScoreCombo': self.score.maxCombo
+            '300': int(self.score.c300),
+            '100': int(self.score.c100),
+            '50': int(self.score.c50),
+            'Misses': int(self.score.cMiss),
+            'ScoreCombo': int(self.score.maxCombo)
         }
 
         mapdata = []

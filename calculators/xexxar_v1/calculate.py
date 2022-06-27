@@ -69,7 +69,7 @@ def create_difficulty_metadata(metadata: dict):
 def calculate_note_difficulties(metadata: dict, objects: list):
     out = []
 
-    tap_multiplier = 6
+    tap_multiplier = 12.5
     acc_multiplier = 10
     sli_multiplier = 1
     mov_multiplier = 60
@@ -98,6 +98,50 @@ def lp_sum(vector: list, p):
     return sum
 
 
+def apply_score_judgements(note_difficulties: list, score_data: dict):
+    out = []
+
+    note_difficulties.sort(reverse=True, key=lambda note: lp_sum([note['ad'], note['md'], note['sd'], note['td']], 1.1))
+
+    object_count = len(note_difficulties)
+
+    misses = 5 * score_data['Misses']#int(object_count * min(1, score_data['Misses']) / (0.05 * object_count))
+    hundreds = score_data['100'] #int(object_count - object_count * (.95 ** ((100 * score_data['100']) / object_count)))
+    fifties = score_data['50'] #int(object_count - object_count * (.9 ** ((100 * score_data['50']) / object_count)))
+
+    # print(hundreds)
+
+    for note in note_difficulties:
+        if misses > 0:
+            note['ad'] = 0
+            note['md'] = 0
+            note['sd'] = 0
+            note['td'] = 0
+
+            out.append(note)
+            misses = misses - 1
+        elif fifties > 0:
+            note['ad'] = 0
+            note['md'] = note['md']
+            note['sd'] = note['sd']
+            note['td'] = 0
+
+            out.append(note)
+            fifties = fifties - 1
+        elif hundreds > 0:
+            note['ad'] = 0
+            note['md'] = note['md']
+            note['sd'] = note['sd']
+            note['td'] = note['td']
+
+            out.append(note)
+            hundreds = hundreds - 1
+        else:
+            out.append(note)
+
+    return out
+
+
 def calculate(metadata: dict, map_data: list, score_data: dict):
     # Entry point to calculate the PP value for a given set of map data and score information.
 
@@ -112,35 +156,10 @@ def calculate(metadata: dict, map_data: list, score_data: dict):
 
     # Now that we have vectorized hit judgements, we can calculate the difficulty of every object. broken up into judgement form.
     note_difficulties = calculate_note_difficulties(difficulty_metadata, objects)
-    #
-    # ### NOTE Coming out this method, we have the following structure
-    #
-    # [{'m'  # Store the movement difficulty.
-    #   'a'  # Store the raw accuracy difficulty
-    #   's'  # Store the raw speed difficulty
-    #   'c'} # Store the slider end difficulty
-    #   ...]
-    #
-    # # This will be used against the judgements from the map to derive penalties based off score data.
-    #
-    # # Combo scaling: (dropped sliders)
-    # # for FC plays, we drop 'c' difficulty based off the number of dropped slider ends (based off missing combo).
-    # # for non FC plays, we do the same thing, so since combo is missing, we're able to derive the number of misses.
-    #
-    # # Miss Scaling:
-    # # entire note is removed from calculation (and additional notes I'm assuming, based on penalty).
-    #
-    # # 100 Scaling:
-    # # Remove the 'a' difficulty from the strains and 25% of the speed 's' strain.
-    #
-    # # 50 Scaling:
-    # # Remove the 'a' difficulty and the 's' difficulty from the strain.
-    #
-    # ### NOTE end
-    #
-    # ## Apply penalties to score based off
-    # note_difficulties = apply_score_judgements(note_difficulties, score_data)
-    #
+
+    ## Apply penalties to score based off score data
+    note_difficulties = apply_score_judgements(note_difficulties, score_data)
+
     # Calculate effective Star Rating.
     star_rating = 0
 
@@ -153,8 +172,8 @@ def calculate(metadata: dict, map_data: list, score_data: dict):
 
     pp = pp_multiplier * star_rating ** 3 # 3 here cubes this SR into a pp value. pp_multiplier is a scalar to adjust things.
 
-    logging.debug("Star Rating: ", star_rating)
+    # logging.debug("Star Rating: ", star_rating)
     # combo game.
-    # pp *= 0.75 + 0.25 * (score_data['ScoreCombo'] / metadata['MaxCombo'])
+    pp *= 0.5 + 0.5 * (score_data['ScoreCombo'] / metadata['MaxCombo'])
 
     return pp #result
