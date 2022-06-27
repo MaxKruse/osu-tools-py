@@ -97,7 +97,7 @@ def ripple(ctx, gamemode, profile_id):
 
     scoresRecalculated = {}
     for map_id in scoresOriginal:
-        score = scoresOriginal[map_id]
+        score = deepcopy(scoresOriginal[map_id])
         # make sure the beatmap_id is reasonable (e.g. above 0)
         if int(score.beatmap_id) < 1:
             logging.debug(f"Error: Beatmap ID is below 1 ({score.beatmap_id}), skipping")
@@ -108,10 +108,11 @@ def ripple(ctx, gamemode, profile_id):
         logging.debug("Calculating score for beatmap " + str(score.beatmap_id))
         beatmap_ = slider.Beatmap.from_path(f"./osu_files/{score.beatmap_id}.osu")
         calculator = calculators.PP_CALCULATORS[ctx.obj["calculator"]](beatmap_, score)
-        # logging.debug(f"Before: {score.pp}pp | After: {calculator.pp}pp")
+        logging.debug(f"Before: {score.pp}pp | After: {calculator.pp}pp")
         score.pp = calculator.pp
         scoresRecalculated[map_id] = score
 
+    # sort the recalculated scores by their pp, highest first
     scoresRecalculatedArr = sorted(scoresRecalculated.values(), key=lambda x: x.pp, reverse=True)
         
     # Aggregate the pp of the recalculated scores, where
@@ -126,14 +127,13 @@ def ripple(ctx, gamemode, profile_id):
     i = 1
     # for each score, print the previous and new pp
     logging.info(f"#|\tMAP_ID\t|\tCOMBO\t|\tACC\t|\tPP_ORIGINAL\t|\tPP_RECALCULATED")
-    for map_id in scoresRecalculated:
-        s1: Score = scoresOriginal[map_id]
-        s2: Score = scoresRecalculated[map_id]
+    for s2 in scoresRecalculatedArr:
+        s1: Score = scoresOriginal[str(s2.beatmap_id)]
 
         # Calc the acc
         s1.calculateAccuracy()
 
-        logging.info(f"{i}|\t{map_id}\t|\t{s1.maxCombo}x\t|\t{(s1.accuracy*100.0):.2f}%\t|\t{s1.pp:.3f}pp\t|\t{s2.pp:.3f}pp")
+        logging.info(f"{i}|\t{str(s2.beatmap_id)}\t|\t{s1.maxCombo}x\t|\t{(float(s1.accuracy)*100.0):.2f}%\t|\t{float(s1.pp):.3f}pp\t|\t{float(s2.pp):.3f}pp")
         i += 1
 
     # print both the old and new profiles
