@@ -8,6 +8,7 @@ import slider
 import calculators
 from helpers.Score import Score
 from helpers.download_map import download_map
+from helpers.table_print import print_scores
 
 RIPPLE_BASE_URL = "https://ripple.moe/api"
 
@@ -22,9 +23,12 @@ LOG_LEVELS = {
 @click.pass_context
 @click.option("--calculator", default="xexxar_v1", help="Calculator to use, default is xexxar_v1")
 @click.option("--log", default="info", help="Log level, default is debug. Allowed is debug, info")
-def cli(ctx, calculator, log):
+@click.option("--output", default="", help="Output file, if not specified, output is printed to stdout")
+def cli(ctx, calculator, log, output):
     ctx.ensure_object(dict)
     ctx.obj['calculator'] = calculator
+    ctx.obj['log'] = log
+    ctx.obj['output'] = output
     logging.basicConfig(level=LOG_LEVELS[log], format="[%(levelname)s] %(message)s")
     logging.debug(f"Using calculator: {calculator}")
 
@@ -128,18 +132,7 @@ def ripple(ctx, gamemode, profile_id):
         copyProfile[gamemode]["pp"] += score.pp * (0.95 ** i)
         i += 1
 
-    i = 1
-    # for each score, print the previous and new pp
-    logging.info(f"#|\tMAP_ID\t|\tCOMBO\t|\tACC\t|\tPP_ORIGINAL\t|\tPP_RECALCULATED")
-    for s2 in scoresRecalculatedArr:
-        s1: Score = scoresOriginal[s2.beatmap_id]
-
-        # Calc the acc
-        s1.calculateAccuracy()
-        m: slider.Beatmap = maps[s1.beatmap_id]
-
-        logging.info(f"{str(i).ljust(3)} | {m.beatmap_id} {m.display_name.ljust(80)}\t|\t{s1.maxCombo}/{m.max_combo}x\t|\t{(float(s1.accuracy)*100.0):.2f}%\t|\t{float(s1.pp):.3f}pp\t|\t{float(s2.pp):.3f}pp")
-        i += 1
+    print_scores(scoresOriginal, scoresRecalculatedArr, maps, ctx.obj['output'])
 
     # print both the old and new profiles
     logging.info(f"Profile Before: {originalUser[gamemode]['pp']}pp")
