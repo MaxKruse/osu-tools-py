@@ -122,7 +122,7 @@ def ripple(ctx, gamemode, profile_id):
 
     # sort the recalculated scores by their pp, highest first
     scoresRecalculatedArr = sorted(scoresRecalculated.values(), key=lambda x: x.pp, reverse=True)
-        
+
     # Aggregate the pp of the recalculated scores, where
     # total pp = pp[1] * 0.95^0 + pp[2] * 0.95^1 + pp[3] * 0.95^2 + ... + pp[m] * 0.95^(m-1)
     copyProfile = deepcopy(originalUser)

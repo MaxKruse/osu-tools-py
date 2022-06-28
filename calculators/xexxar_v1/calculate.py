@@ -70,7 +70,7 @@ def calculate_note_difficulties(metadata: dict, objects: list):
     out = []
 
     tap_multiplier = 12.5
-    acc_multiplier = 10
+    acc_multiplier = 12.5
     sli_multiplier = 1
     mov_multiplier = 60
 
@@ -98,16 +98,25 @@ def lp_sum(vector: list, p):
     return sum
 
 
-def apply_score_judgements(note_difficulties: list, score_data: dict):
+def apply_score_judgements(note_difficulties: list, score_data: dict, metadata: dict):
     out = []
 
-    note_difficulties.sort(reverse=True, key=lambda note: lp_sum([note['ad'], note['md'], note['sd'], note['td']], 1.1))
+    note_difficulties.sort(reverse=True, key=lambda note: lp_sum([note['ad'], note['md'], note['sd'], note['td']], 1.0))
 
     object_count = len(note_difficulties)
 
-    misses = 5 * score_data['Misses']#int(object_count * min(1, score_data['Misses']) / (0.05 * object_count))
-    hundreds = score_data['100'] #int(object_count - object_count * (.95 ** ((100 * score_data['100']) / object_count)))
-    fifties = score_data['50'] #int(object_count - object_count * (.9 ** ((100 * score_data['50']) / object_count)))
+    # Apply removal of aim strain = to 1 - the square root of the percentage of combo FC'd
+    combo_penalty = metadata['MaxCombo'] - int(metadata['MaxCombo'] * (score_data['ScoreCombo'] / metadata['MaxCombo']) ** (1 / 2))
+
+    misses = object_count - int(object_count * (((object_count - score_data['Misses']) / object_count) ** 10))
+    hundreds = object_count - int(object_count * (((object_count - score_data['100']) / object_count) ** 3))
+    fifties = object_count - int(object_count * (((object_count - score_data['50']) / object_count) ** 5))
+
+    # print(combo_penalty / metadata['MaxCombo'])
+    # Arbitrary 5 note per index penalty until a better derivation method for acc calc is found.
+    # misses = 5 * score_data['Misses']#int(object_count * min(1, score_data['Misses']) / (0.05 * object_count))
+    # hundreds = 1 * score_data['100'] #int(object_count - object_count * (.95 ** ((100 * score_data['100']) / object_count)))
+    # fifties = 1 * score_data['50'] #int(object_count - object_count * (.9 ** ((100 * score_data['50']) / object_count)))
 
     # print(hundreds)
 
@@ -118,26 +127,29 @@ def apply_score_judgements(note_difficulties: list, score_data: dict):
             note['sd'] = 0
             note['td'] = 0
 
-            out.append(note)
             misses = misses - 1
-        elif fifties > 0:
-            note['ad'] = 0
-            note['md'] = note['md']
-            note['sd'] = note['sd']
-            note['td'] = 0
-
-            out.append(note)
-            fifties = fifties - 1
-        elif hundreds > 0:
-            note['ad'] = 0
-            note['md'] = note['md']
-            note['sd'] = note['sd']
-            note['td'] = note['td']
-
-            out.append(note)
-            hundreds = hundreds - 1
         else:
-            out.append(note)
+            if combo_penalty > 0:
+
+                note['md'] = 0#note['md']
+                note['sd'] = 0#note['sd']
+                combo_penalty = combo_penalty - 1
+            else:
+                note['md'] = note['md']
+                note['sd'] = note['sd']
+
+            if fifties > 0:
+                note['ad'] = 0
+                note['td'] = 0
+
+                fifties = fifties - 1
+            elif hundreds > 0:
+                note['ad'] = 0
+                note['td'] = note['td']
+
+                hundreds = hundreds - 1
+
+        out.append(note)
 
     return out
 
@@ -158,7 +170,7 @@ def calculate(metadata: dict, map_data: list, score_data: dict):
     note_difficulties = calculate_note_difficulties(difficulty_metadata, objects)
 
     ## Apply penalties to score based off score data
-    note_difficulties = apply_score_judgements(note_difficulties, score_data)
+    note_difficulties = apply_score_judgements(note_difficulties, score_data, metadata)
 
     # Calculate effective Star Rating.
     star_rating = 0
@@ -168,12 +180,6 @@ def calculate(metadata: dict, map_data: list, score_data: dict):
 
     star_rating = star_rating ** (1/p)
 
-    ## Apply a % nerf to
-
     pp = pp_multiplier * star_rating ** 3 # 3 here cubes this SR into a pp value. pp_multiplier is a scalar to adjust things.
-
-    # logging.debug("Star Rating: ", star_rating)
-    # combo game.
-    pp *= 0.5 + 0.5 * (score_data['ScoreCombo'] / metadata['MaxCombo'])
 
     return pp #result
