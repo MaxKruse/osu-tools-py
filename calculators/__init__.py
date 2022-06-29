@@ -1,5 +1,5 @@
 
-from calculators.xexxar_v1.XexxarCalc import XexxarPerformanceCalculator
+from calculators.XexxarCalc.XexxarCalc import XexxarPerformanceCalculator
 from calculators.bucket_v1.BucketCalc import BucketPerformanceCalculator
 
 
