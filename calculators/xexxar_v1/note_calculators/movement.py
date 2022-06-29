@@ -34,6 +34,8 @@ def calculate_movement_difficulty(object: dict, index, metadata: dict, objects: 
         if (object['dt'] - prev_object['dt'] < 10):
             difficulty += velChangeMultiplier * difference / (2 * metadata['cs_radius'])
 
+        difficulty += get_vector_length(prev_object) / (2 * metadata['cs_radius']) / 2
+
     difficulty += get_vector_length(object) / (2 * metadata['cs_radius'])
 
     return difficulty

@@ -102,23 +102,27 @@ def ripple(ctx, gamemode, profile_id):
     maps = {}
 
     scoresRecalculated = {}
-    for map_id in scoresOriginal:
-        score = deepcopy(scoresOriginal[map_id])
-        # make sure the beatmap_id is reasonable (e.g. above 0)
-        if int(score.beatmap_id) < 1:
-            logging.debug(f"Error: Beatmap ID is below 1 ({score.beatmap_id}), skipping")
-            continue
 
-        # Download the beatmap for caching purposes
-        download_map(score.beatmap_id)
-        logging.debug("Calculating score for beatmap " + str(score.beatmap_id))
-        beatmap_ = slider.Beatmap.from_path(f"./osu_files/{score.beatmap_id}.osu")
-        beatmap_.display_name
-        calculator = calculators.PP_CALCULATORS[ctx.obj["calculator"]](beatmap_, score)
-        logging.debug(f"Before: {score.pp}pp | After: {calculator.pp}pp")
-        score.pp = calculator.pp
-        scoresRecalculated[map_id] = score
-        maps[score.beatmap_id] = beatmap_
+    for map_id in scoresOriginal:
+        try:
+            score = deepcopy(scoresOriginal[map_id])
+            # make sure the beatmap_id is reasonable (e.g. above 0)
+            if int(score.beatmap_id) < 1:
+                logging.debug(f"Error: Beatmap ID is below 1 ({score.beatmap_id}), skipping")
+                continue
+
+            # Download the beatmap for caching purposes
+            download_map(score.beatmap_id)
+            logging.debug("Calculating score for beatmap " + str(score.beatmap_id))
+            beatmap_ = slider.Beatmap.from_path(f"./osu_files/{score.beatmap_id}.osu")
+            beatmap_.display_name
+            calculator = calculators.PP_CALCULATORS[ctx.obj["calculator"]](beatmap_, score)
+            logging.debug(f"Before: {score.pp}pp | After: {calculator.pp}pp")
+            score.pp = calculator.pp
+            scoresRecalculated[map_id] = score
+            maps[score.beatmap_id] = beatmap_
+        except:
+            None
 
     # sort the recalculated scores by their pp, highest first
     scoresRecalculatedArr = sorted(scoresRecalculated.values(), key=lambda x: x.pp, reverse=True)
