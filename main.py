@@ -1,9 +1,12 @@
 from copy import deepcopy
-import json
-from re import M
+from concurrent.futures import ThreadPoolExecutor, Future, thread
+import os
+import threading
+from time import time
 import click
 import requests
 import slider
+import logging
 
 import calculators
 from helpers.LightweightBeatmap import LightweightBeatmap
@@ -12,13 +15,28 @@ from helpers.download_map import download_map
 from helpers.table_print import print_scores
 
 RIPPLE_BASE_URL = "https://ripple.moe/api"
+MAX_THREADS = os.cpu_count() * 2
 
-import logging
+threadPool = ThreadPoolExecutor(max_workers=MAX_THREADS)
+futures = []
 
 LOG_LEVELS = {
     "debug": logging.DEBUG,
     "info": logging.INFO,
 }
+
+def calculateMapFromScore(ctx, score: Score):
+    logging.debug("Loading map...")
+    now = time()
+    beatmap_ = slider.Beatmap.from_path(f"./osu_files/{score.beatmap_id}.osu")
+    logging.debug(f"Loaded map in thread {threading.get_ident()} at {time() - now} seconds")
+    beatmap_.display_name
+    calculator = calculators.PP_CALCULATORS[ctx.obj["calculator"]](beatmap_, score)
+    logging.debug(f"Calculator done in thread {threading.get_ident()} at {time() - now} seconds")
+    logging.debug(f"Before: {score.pp}pp | After: {calculator.pp}pp")
+    score.pp = calculator.pp
+    logging.info(f"Calculated Score in thread {threading.get_ident()} at {time() - now} seconds")
+    return (score, LightweightBeatmap(beatmap_id=beatmap_.beatmap_id, display_name=beatmap_.display_name, max_combo=beatmap_.max_combo))
 
 @click.group()
 @click.pass_context
@@ -30,7 +48,7 @@ def cli(ctx, calculator, log, output):
     ctx.obj['calculator'] = calculator
     ctx.obj['log'] = log
     ctx.obj['output'] = output
-    logging.basicConfig(level=LOG_LEVELS[log], format="[%(levelname)s] %(message)s")
+    logging.basicConfig(level=LOG_LEVELS[log], format="[%(asctime)s] [%(levelname)s] %(message)s")
     logging.debug(f"Using calculator: {calculator}")
 
 @cli.command()
@@ -104,7 +122,10 @@ def ripple(ctx, gamemode, profile_id):
 
     scoresRecalculated = {}
 
+    threaded_start = time()
+
     for map_id in scoresOriginal:
+        now = time()
         try:
             score = deepcopy(scoresOriginal[map_id])
             # make sure the beatmap_id is reasonable (e.g. above 0)
@@ -115,17 +136,21 @@ def ripple(ctx, gamemode, profile_id):
             # Download the beatmap for caching purposes
             download_map(score.beatmap_id)
             logging.debug("Calculating score for beatmap " + str(score.beatmap_id))
-            beatmap_ = slider.Beatmap.from_path(f"./osu_files/{score.beatmap_id}.osu")
-            beatmap_.display_name
-            calculator = calculators.PP_CALCULATORS[ctx.obj["calculator"]](beatmap_, score)
-            logging.debug(f"Before: {score.pp}pp | After: {calculator.pp}pp")
-            score.pp = calculator.pp
-            scoresRecalculated[map_id] = score
 
-            # Clean up the beatmap so we dont store literally everything in memory
-            maps[score.beatmap_id] = LightweightBeatmap(beatmap_id=beatmap_.beatmap_id, display_name=beatmap_.display_name, max_combo=beatmap_.max_combo)
+            # Add the calculation part to the threadpool
+            future = threadPool.submit(calculateMapFromScore, ctx, score)
+            futures.append(future)
         except:
             None
+        logging.debug(f"Added map to threadpool in thread {threading.get_ident()} in {time() - now} seconds")
+
+    # Resolve the futures
+    for future in futures:
+        score, beatmap = future.result()
+        scoresRecalculated[score.beatmap_id] = score
+        maps[score.beatmap_id] = beatmap
+
+    print("Threaded time:", time() - threaded_start)
 
     # sort the recalculated scores by their pp, highest first
     scoresRecalculatedArr = sorted(scoresRecalculated.values(), key=lambda x: x.pp, reverse=True)

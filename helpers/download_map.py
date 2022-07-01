@@ -7,6 +7,12 @@ import requests
 
 
 def download_map(beatmap_id):
+
+    # if the map is already downloaded, skip it
+    if os.path.isfile(f"./osu_files/{beatmap_id}.osu"):
+        logging.debug(f"Map {beatmap_id} already downloaded, skipping")
+        return
+
     try:
         # Download the beatmap
         beatmap_url = f"https://osu.ppy.sh/osu/{beatmap_id}"
