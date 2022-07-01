@@ -29,13 +29,12 @@ def calculateMapFromScore(ctx, score: Score):
     logging.debug("Loading map...")
     now = time()
     beatmap_ = slider.Beatmap.from_path(f"./osu_files/{score.beatmap_id}.osu")
-    logging.debug(f"Loaded map in thread {threading.get_ident()} at {time() - now} seconds")
-    beatmap_.display_name
+    logging.debug(f"Loaded map (Beatmap {score.beatmap_id}) in thread {threading.get_ident()} at {time() - now} seconds")
     calculator = calculators.PP_CALCULATORS[ctx.obj["calculator"]](beatmap_, score)
-    logging.debug(f"Calculator done in thread {threading.get_ident()} at {time() - now} seconds")
+    logging.debug(f"Calculator (Beatmap {score.beatmap_id}) done in thread {threading.get_ident()} at {time() - now} seconds")
     logging.debug(f"Before: {score.pp}pp | After: {calculator.pp}pp")
     score.pp = calculator.pp
-    logging.info(f"Calculated Score in thread {threading.get_ident()} at {time() - now} seconds")
+    logging.info(f"Calculated Score (Beatmap {score.beatmap_id}) in thread {threading.get_ident()} at {time() - now} seconds")
     return (score, LightweightBeatmap(beatmap_id=beatmap_.beatmap_id, display_name=beatmap_.display_name, max_combo=beatmap_.max_combo))
 
 @click.group()
@@ -120,16 +119,19 @@ def ripple(ctx, gamemode, profile_id):
 
     maps = {}
 
-    scoresRecalculated = {}
+    # filter out any score where beatmap_id = 0
+    scoresOriginal = {k: v for k, v in scoresOriginal.items() if v.beatmap_id != 0}
+
+    scoresRecalculated = deepcopy(scoresOriginal)
 
     threaded_start = time()
 
-    for map_id in scoresOriginal:
+    for map_id in scoresRecalculated:
         now = time()
         try:
-            score = deepcopy(scoresOriginal[map_id])
+            score = scoresRecalculated[map_id]
             # make sure the beatmap_id is reasonable (e.g. above 0)
-            if int(score.beatmap_id) < 1:
+            if int(map_id) < 1:
                 logging.debug(f"Error: Beatmap ID is below 1 ({score.beatmap_id}), skipping")
                 continue
 
@@ -153,7 +155,7 @@ def ripple(ctx, gamemode, profile_id):
     print("Threaded time:", time() - threaded_start)
 
     # sort the recalculated scores by their pp, highest first
-    scoresRecalculatedArr = sorted(scoresRecalculated.values(), key=lambda x: x.pp, reverse=True)
+    scoresRecalculatedArr = sorted(scoresRecalculated.values(), key=lambda x: float(x.pp), reverse=True)
 
     # Aggregate the pp of the recalculated scores, where
     # total pp = pp[1] * 0.95^0 + pp[2] * 0.95^1 + pp[3] * 0.95^2 + ... + pp[m] * 0.95^(m-1)
