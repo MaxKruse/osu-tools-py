@@ -12,7 +12,7 @@
             "console": "integratedTerminal",
             "args": [
                 "--log",
-                "info",
+                "debug",
                 "--calculator",
                 "xexxar_v1",
                 "--output",
