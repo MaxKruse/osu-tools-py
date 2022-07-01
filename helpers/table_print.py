@@ -1,6 +1,6 @@
 from typing import Dict, List
+from prettytable import PrettyTable
 import slider
-from tabulate import tabulate
 
 from helpers.Score import Score
 
@@ -9,8 +9,17 @@ def print_scores(old: Dict[int, Score], new: List[Score], maps: Dict[int, slider
     Prints the scores in a table.
     """
 
+    # Setup the printer
+    printer = PrettyTable()
+
     headers = ["Beatmap ID", "Beatmap Name", "Combo", "Accuracy", "PP Before", "PP After", "Change"]
-    toPrint = []
+    printer.field_names = headers
+
+    printer.border = True
+    printer.float_format = ".3"
+    printer.align["Change"] = "r"   
+    printer.align["Beatmap ID"] = "r"
+
 
     for newScore in new:
         s1: Score = old[newScore.beatmap_id]
@@ -20,7 +29,7 @@ def print_scores(old: Dict[int, Score], new: List[Score], maps: Dict[int, slider
         s1.calculateAccuracy()
         m: slider.Beatmap = maps[s1.beatmap_id]
 
-        toPrint.append([
+        printer.add_row([
             s1.beatmap_id,
             m.display_name,
             f"{s1.maxCombo}/{m.max_combo}x",
@@ -29,12 +38,9 @@ def print_scores(old: Dict[int, Score], new: List[Score], maps: Dict[int, slider
             f"{float(s2.pp):.3f}pp",
             f"{(float(s2.pp) - float(s1.pp)):.3f}"
         ])
+    
+    print(printer)
 
-    resStr = tabulate(toPrint, headers=headers, tablefmt="grid", showindex=True)
-    
-    if toFile == "":
-        print(resStr)
-    else:
+    if toFile != "":
         with open(toFile, "w") as f:
-            f.write(resStr)
-    
+            f.write(printer.get_json_string())

@@ -13,6 +13,8 @@
             "args": [
                 "--calculator",
                 "xexxar_v1",
+                "--output",
+                "lithium.json",
                 "ripple",
                 "std",
                 "1955"
