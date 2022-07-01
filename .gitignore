@@ -2,4 +2,5 @@ __pycache__
 osu_files/*
 target/*
 lithium.json
-dist/*
+dist/**
+main.spec
