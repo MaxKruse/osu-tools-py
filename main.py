@@ -6,6 +6,7 @@ import requests
 import slider
 
 import calculators
+from helpers.LightweightBeatmap import LightweightBeatmap
 from helpers.Score import Score
 from helpers.download_map import download_map
 from helpers.table_print import print_scores
@@ -120,7 +121,9 @@ def ripple(ctx, gamemode, profile_id):
             logging.debug(f"Before: {score.pp}pp | After: {calculator.pp}pp")
             score.pp = calculator.pp
             scoresRecalculated[map_id] = score
-            maps[score.beatmap_id] = beatmap_
+
+            # Clean up the beatmap so we dont store literally everything in memory
+            maps[score.beatmap_id] = LightweightBeatmap(beatmap_id=beatmap_.beatmap_id, display_name=beatmap_.display_name, max_combo=beatmap_.max_combo)
         except:
             None
 
