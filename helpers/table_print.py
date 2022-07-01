@@ -4,6 +4,8 @@ import slider
 
 from helpers.Score import Score
 
+__maxLength = 80
+
 def print_scores(old: Dict[int, Score], new: List[Score], maps: Dict[int, slider.Beatmap], toFile: str = ""):
     """
     Prints the scores in a table.
@@ -31,7 +33,7 @@ def print_scores(old: Dict[int, Score], new: List[Score], maps: Dict[int, slider
 
         printer.add_row([
             s1.beatmap_id,
-            m.display_name,
+            (m.display_name[:__maxLength] + "..") if len(m.display_name) > __maxLength else m.display_name,
             f"{s1.maxCombo}/{m.max_combo}x",
             f"{(float(s1.accuracy)*100.0):.2f}%",
             f"{float(s1.pp):.3f}pp",
