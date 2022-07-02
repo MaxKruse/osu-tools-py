@@ -155,7 +155,7 @@ def ripple(ctx, gamemode, profile_id):
         scoresRecalculated[score.beatmap_id] = score
         maps[score.beatmap_id] = beatmap
 
-    print("Threaded time:", time() - threaded_start)
+    logging.debug("Threaded time:", time() - threaded_start)
 
     # sort the recalculated scores by their pp, highest first
     scoresRecalculatedArr = sorted(scoresRecalculated.values(), key=lambda x: float(x.pp), reverse=True)
@@ -185,7 +185,7 @@ def weightfinder(ctx, file):
 
     weights = weight_finder(mapdata)
 
-    print(weights)
+    logging.debug(weights)
     pass
 
 @cli.command()
