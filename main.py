@@ -14,6 +14,9 @@ from helpers.Score import Score
 from helpers.download_map import download_map
 from helpers.table_print import print_scores
 
+import json
+from calculators.XexxarCalc.mlpp.weight_finder import weight_finder
+
 RIPPLE_BASE_URL = "https://ripple.moe/api"
 MAX_THREADS = os.cpu_count() * 2
 
@@ -169,6 +172,18 @@ def ripple(ctx, gamemode, profile_id):
     # print both the old and new profiles
     logging.info(f"Profile Before: {originalUser[gamemode]['pp']}pp")
     logging.info(f"Profile After: {copyProfile[gamemode]['pp']}pp")
+    pass
+
+@cli.command()
+@click.pass_context
+@click.argument("file", nargs=1)
+def weightfinder(ctx, file):
+    with open(file, "r") as f:
+        mapdata = json.load(f)
+
+    weights = weight_finder(mapdata)
+
+    print(weights)
     pass
 
 @cli.command()
