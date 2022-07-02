@@ -1,3 +1,4 @@
 [submodule "calculators/XexxarCalc"]
 	path = calculators/XexxarCalc
 	url = git@github.com:PP-Wizards/XexxarCalc.git
+	branch = xexxar-rework
