@@ -29,6 +29,8 @@ class BucketPerformanceCalculator(BaseCalculator.BaseCalculator):
         self.bucket_size = bucket_size
 
     def calculate_pp(self):
+        self.pp = 1.0
+        return self.pp
         dt_enabled = int(self.score.mods) & 64 > 0
         hr_enabled = int(self.score.mods) & 1 > 0
         ez_enabled = int(self.score.mods) & 2 > 0
