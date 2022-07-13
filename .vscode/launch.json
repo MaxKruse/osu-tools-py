@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Aktuelle Datei",
+            "name": "Profile Calc",
             "type": "python",
             "request": "launch",
             "program": "main.py",
@@ -20,6 +20,22 @@
                 "ripple",
                 "std",
                 "1955"
+            ],
+            "justMyCode": true
+        },
+        {
+            "name": "GLM Weightfinder",
+            "type": "python",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--log",
+                "debug",
+                "--calculator",
+                "xexxar_v1",
+                "weightfinder",
+                "../mapdata-generator/maps_dev_0.json"
             ],
             "justMyCode": true
         }
