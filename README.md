@@ -44,3 +44,6 @@ Xexxar's PP calc currently differentiates the following skills:
 15. Slider Movement Requirement
 16. Slider Complexity (Visual)
 17. Difficulty Curve
+18. BPM Shift
+19. Aim Cheese (staying in the middle in wiggle streams is precision, having to aim is incredibly more hard)
+20. Movement Precision (having cs0 means technically one has to aim not as good, while cs7 means one has to aim good)
