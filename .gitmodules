@@ -1,0 +1,3 @@
+[submodule "calculators/StreaminCalc"]
+	path = calculators/StreaminCalc
+	url = git@github.com:PP-Wizards/StreamingCalc.git
