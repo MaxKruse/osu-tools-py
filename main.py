@@ -22,11 +22,11 @@ def cli(ctx, calculator):
 @cli.command()
 @click.pass_context
 @click.argument("gamemode", type=str, nargs=1)
-@click.argument("profile_id", type=int, nargs=1)
+@click.argument("profile", type=str, nargs=1)
 @click.option("--api-key", default="NONE", help="API key for bancho. https://osu.ppy.sh/p/api")
-def bancho(ctx, profile_id, gamemode, api_key):
+def bancho(ctx, profile, gamemode, api_key):
     click.echo("Bancho Profile Recalculator")
-    click.echo(f"Passed PROFILE_ID = {profile_id}")
+    click.echo(f"Passed profile = {profile}")
 
     if gamemode != "osu":
         click.echo("Only osu gamemode is supported")
@@ -34,7 +34,7 @@ def bancho(ctx, profile_id, gamemode, api_key):
     
 
     params = {
-        "u": profile_id,
+        "u": profile,
         "k": api_key,
         "m": 0,
         "limit": 100
@@ -64,7 +64,7 @@ def bancho(ctx, profile_id, gamemode, api_key):
         temp = Score()
         temp.score = score["score"]
         temp.beatmap_id = score["beatmap_id"]
-        temp.playerUserID = profile_id
+        temp.playerUserID = originalUser["user_id"]
         temp.playerName = originalUser["username"]
         temp.completed = True
         temp.c300 = score["count300"]
