@@ -22,3 +22,28 @@ To develop a new pp calculator, follow the steps below.
 4. In `calculators/__init__.py`, add your calculator to the `calculators` list by giving it a name and the class name.
 
 Thats it. You can now call your calculator by providing the `--calculator` flag, e.g. ` python .\main.py --calculator MyCalc file --beatmap .\osu_files\2520047.osu`.
+
+## Xexxar pp
+
+Xexxar's PP calc currently differentiates the following skills:
+
+1. Movement Distance
+2. Movement Velocity
+3. Distance Difference between Objects (e.g. changing spacing)
+4. Angle Calculation (0, 45, 90, 135, 180)
+5. Visual Density (+ HD)
+6. Visual Distance (+ HD)
+7. Slider Velocity
+8. Slider Leniency
+9. Tap Density
+10. Tap Stamina
+11. Accuracy Window
+12. Beatsnap/Rhythm Changes (1/2->1/4, 3/4->1/4, 1/2->1/3)
+13. Reading: Overlaps
+14. Acc on slow parts
+15. Slider Movement Requirement
+16. Slider Complexity (Visual)
+17. Difficulty Curve
+18. BPM Shift
+19. Aim Cheese (staying in the middle in wiggle streams is precision, having to aim is incredibly more hard)
+20. Movement Precision (having cs0 means technically one has to aim not as good, while cs7 means one has to aim good)

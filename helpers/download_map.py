@@ -1,4 +1,5 @@
 
+import logging
 import os
 import time
 
@@ -6,6 +7,12 @@ import requests
 
 
 def download_map(beatmap_id):
+
+    # if the map is already downloaded, skip it
+    if os.path.isfile(f"./osu_files/{beatmap_id}.osu"):
+        logging.debug(f"Map {beatmap_id} already downloaded, skipping")
+        return
+
     try:
         # Download the beatmap
         beatmap_url = f"https://osu.ppy.sh/osu/{beatmap_id}"
@@ -16,11 +23,11 @@ def download_map(beatmap_id):
             
         # Check if the beatmap exists in the local ./osu_files folder
         if not os.path.exists(f"./osu_files/{beatmap_id}.osu"):
-            print(f"Downloading map {beatmap_id}...")
+            logging.debug(f"Downloading map {beatmap_id}...")
             # Download the beatmap
             resp = requests.get(beatmap_url)
             if not resp.ok:
-                print("Error " + str(resp.status_code) + ": " + resp.reason)
+                logging.error("Error " + str(resp.status_code) + ": " + resp.reason)
                 return
             with open(f"./osu_files/{beatmap_id}.osu", "wb") as f:
                 f.write(resp.content)
@@ -29,7 +36,7 @@ def download_map(beatmap_id):
             
         # Check if the beatmap exists in the local ./osu_files folder
         if not os.path.exists(f"./osu_files/{beatmap_id}.osu"):
-            print("Error: Something went wrong while downloading the beatmap")
+            logging.error("Error: Something went wrong while downloading the beatmap")
             return
         # Check if the filesize is reasonable. Anything over 1kb is fine
         if os.path.getsize(f"./osu_files/{beatmap_id}.osu") < 1024:
@@ -38,5 +45,5 @@ def download_map(beatmap_id):
             return
 
     except Exception as e:
-        print(f"Exception occured in download_map: {e}")
+        logging.error(f"Exception occured in download_map: {e}")
         return
