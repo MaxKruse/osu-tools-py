@@ -37,7 +37,6 @@ def bancho(ctx, profile_id, gamemode, api_key):
         "u": profile_id,
         "k": api_key,
         "m": 0,
-        "type": "id",
         "limit": 100
     }
 
