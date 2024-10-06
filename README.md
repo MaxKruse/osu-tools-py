@@ -6,9 +6,12 @@ Using [slider](https://pypi.org/project/slider/) to parse osu files.
 
 ## Installation
 
-    pip install -r requirements.txt
+    ./setup
 
 ## Usage
+
+    ./setup
+    ./venv/scripts/activate
 
     python .\main.py profile osu 1955
 
