@@ -13,7 +13,7 @@ Using [slider](https://pypi.org/project/slider/) to parse osu files.
     ./setup
     ./venv/scripts/activate
 
-    python .\main.py profile osu 1955
+    python .\main.py --calculator bucket_v1 bancho --api-key <key> osu 1199528
 
 ## Development
 
