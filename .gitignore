@@ -5,3 +5,4 @@ lithium.json
 dist/**
 build/**
 main.spec
+venv/*
